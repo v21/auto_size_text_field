@@ -653,7 +653,7 @@ class _AutoSizeTextFieldState extends State<AutoSizeTextField> {
         lastValueFits = true;
       } else {
         right = mid - 1;
-        if (maxLines == null) left = right - 1;
+        // if (maxLines == null) left = right - 1;
       }
     }
 
