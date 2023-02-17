@@ -182,7 +182,7 @@ class AutoSizeTextField extends StatefulWidget {
   ///
   /// Specify null to remove the decoration entirely (including the
   /// extra padding introduced by the decoration to save space for the labels).
-  final InputDecoration decoration;
+  final InputDecoration? decoration;
 
   /// {@macro flutter.widgets.editableText.keyboardType}
   final TextInputType keyboardType;
@@ -608,7 +608,8 @@ class _AutoSizeTextFieldState extends State<AutoSizeTextField> {
     );
   }
 
-  List _calculateFontSize(BoxConstraints size, TextStyle? style, int? maxLines) {
+  List _calculateFontSize(
+      BoxConstraints size, TextStyle? style, int? maxLines) {
     var span = TextSpan(
       style: widget.textSpan?.style ?? style,
       text: widget.textSpan?.text ?? widget.data,
@@ -674,19 +675,19 @@ class _AutoSizeTextFieldState extends State<AutoSizeTextField> {
       TextSpan text, double scale, int? maxLines, BoxConstraints constraints) {
     double constraintWidth = constraints.maxWidth;
     double constraintHeight = constraints.maxHeight;
-    if (widget.decoration.contentPadding != null) {
-      constraintWidth -= widget.decoration.contentPadding!.horizontal;
-      constraintHeight -= widget.decoration.contentPadding!.vertical;
+    if (widget.decoration?.contentPadding != null) {
+      constraintWidth -= widget.decoration?.contentPadding!.horizontal ?? 0.0;
+      constraintHeight -= widget.decoration?.contentPadding!.vertical ?? 0.0;
     }
 
     if (!widget.wrapWords) {
       List<String?> words = text.toPlainText().split(RegExp('\\s+'));
 
       // Adds prefix and suffix text
-      if (widget.decoration.prefixText != null)
-        words.add(widget.decoration.prefixText);
-      if (widget.decoration.suffixText != null)
-        words.add(widget.decoration.suffixText);
+      if (widget.decoration?.prefixText != null)
+        words.add(widget.decoration!.prefixText);
+      if (widget.decoration?.suffixText != null)
+        words.add(widget.decoration!.suffixText);
 
       var wordWrapTp = TextPainter(
         text: TextSpan(
@@ -702,8 +703,8 @@ class _AutoSizeTextFieldState extends State<AutoSizeTextField> {
       );
 
       wordWrapTp.layout(maxWidth: constraintWidth);
-      double _width = (widget.decoration.contentPadding != null)
-          ? wordWrapTp.width + widget.decoration.contentPadding!.horizontal
+      double _width = (widget.decoration?.contentPadding != null)
+          ? wordWrapTp.width + widget.decoration!.contentPadding!.horizontal
           : wordWrapTp.width;
       _textSpanWidth = math.max(_width, widget.minWidth ?? 0);
 
@@ -727,8 +728,8 @@ class _AutoSizeTextFieldState extends State<AutoSizeTextField> {
     }
 
     // Adds prefix and suffix text
-    word += widget.decoration.prefixText ?? '';
-    word += widget.decoration.suffixText ?? '';
+    word += widget.decoration?.prefixText ?? '';
+    word += widget.decoration?.suffixText ?? '';
 
     var tp = TextPainter(
       text: TextSpan(
@@ -747,12 +748,12 @@ class _AutoSizeTextFieldState extends State<AutoSizeTextField> {
     );
 
     tp.layout(maxWidth: constraintWidth);
-    double _width = (widget.decoration.contentPadding != null)
-        ? tp.width + widget.decoration.contentPadding!.horizontal
+    double _width = (widget.decoration?.contentPadding != null)
+        ? tp.width + widget.decoration!.contentPadding!.horizontal
         : tp.width;
 
-    double _height = (widget.decoration.contentPadding != null)
-        ? tp.height + widget.decoration.contentPadding!.vertical
+    double _height = (widget.decoration?.contentPadding != null)
+        ? tp.height + widget.decoration!.contentPadding!.vertical
         : tp.height;
 
     _textSpanWidth = math.max(_width, widget.minWidth ?? 0);
