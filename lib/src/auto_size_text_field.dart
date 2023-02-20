@@ -557,7 +557,7 @@ class _AutoSizeTextFieldState extends State<AutoSizeTextField> {
             MediaQuery.textScaleFactorOf(context) * style.fontSize!;
 
         //okay, use the smaller of the two numbers
-        fontSize = min(maxFontSize, defaultSize);
+        fontSize = math.min(maxFontSize, defaultSize);
         textFits = result[1] as bool;
       } else {
         //we can be efficient and not consider the sizes larger than the default size
