@@ -22,6 +22,9 @@ class AutoSizeTextField extends StatefulWidget {
   /// This will be null if [data] is provided instead.
   final TextSpan? textSpan;
 
+  /// Send a callback every time we've calculated a new text size
+  final void Function(double fontSize)? onCalculatedFontSize;
+
   /// If non-null, the style to use for this text.
   ///
   /// If the style's 'inherit' property is true, the style will be merged with
@@ -425,6 +428,7 @@ class AutoSizeTextField extends StatefulWidget {
     Key? key,
     this.fullwidth = true,
     this.textFieldKey,
+    this.onCalculatedFontSize,
     this.style,
     this.strutStyle,
     this.minFontSize = 12,
@@ -510,6 +514,7 @@ class AutoSizeTextField extends StatefulWidget {
 
 class _AutoSizeTextFieldState extends State<AutoSizeTextField> {
   late double _textSpanWidth;
+  double? currentFontSize;
 
   @override
   Widget build(BuildContext context) {
@@ -531,6 +536,13 @@ class _AutoSizeTextFieldState extends State<AutoSizeTextField> {
       var fontSize = result[0] as double;
       var textFits = result[1] as bool;
 
+      if (fontSize != currentFontSize) {
+        if (widget.onCalculatedFontSize != null) {
+          sendOnCalculateFontSize(fontSize);
+        }
+        currentFontSize = fontSize;
+      }
+
       Widget textField;
       textField = _buildTextField(fontSize, style, maxLines);
       if (widget.overflowReplacement != null && !textFits) {
@@ -539,6 +551,18 @@ class _AutoSizeTextFieldState extends State<AutoSizeTextField> {
         return textField;
       }
     });
+  }
+
+  void sendOnCalculateFontSize(double fontSize) async {
+    //this is called in the Layout phase
+    //but that's a bad time to send a callback
+    //so wait until the next frame
+    await null;
+
+    //check we're still valid to send it
+    if (mounted) {
+      widget.onCalculatedFontSize!(fontSize);
+    }
   }
 
   @override
