@@ -437,7 +437,7 @@ class AutoSizeTextField extends StatefulWidget {
     this.style,
     this.strutStyle,
     this.minFontSize = 12,
-    this.maxFontSize = double.infinity,
+    this.maxFontSize = 16384,
     this.stepGranularity = 1,
     this.presetFontSizes,
     this.textAlign = TextAlign.start,
