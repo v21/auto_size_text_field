@@ -25,6 +25,10 @@ class AutoSizeTextField extends StatefulWidget {
   /// Send a callback every time we've calculated a new text size
   final void Function(double fontSize)? onCalculatedFontSize;
 
+  /// Send a callback every time we've calculated a new maxium font size
+  /// note: setting this causes us to do extra work
+  final void Function(double fontSize)? onCalculatedMaxFontSize;
+
   /// If non-null, the style to use for this text.
   ///
   /// If the style's 'inherit' property is true, the style will be merged with
@@ -429,6 +433,7 @@ class AutoSizeTextField extends StatefulWidget {
     this.fullwidth = true,
     this.textFieldKey,
     this.onCalculatedFontSize,
+    this.onCalculatedMaxFontSize,
     this.style,
     this.strutStyle,
     this.minFontSize = 12,
@@ -532,9 +537,34 @@ class _AutoSizeTextFieldState extends State<AutoSizeTextField> {
       var maxLines = widget.maxLines ?? defaultTextStyle.maxLines;
       _sanityCheck();
 
-      var result = _calculateFontSize(size, style, maxLines);
-      var fontSize = result[0] as double;
-      var textFits = result[1] as bool;
+      late double fontSize;
+      late bool textFits;
+      if (widget.onCalculatedMaxFontSize != null) {
+        //find out the largest the font could be
+        var result = _calculateFontSize(
+          size,
+          style,
+          maxLines,
+          calculateMaxSize: true,
+        );
+
+        //return it
+        var maxFontSize = result[0] as double;
+        sendOnCalculateMaxFontSize(maxFontSize);
+
+        //what size would it be normally?
+        var defaultSize =
+            MediaQuery.textScaleFactorOf(context) * style.fontSize!;
+
+        //okay, use the smaller of the two numbers
+        fontSize = min(maxFontSize, defaultSize);
+        textFits = result[1] as bool;
+      } else {
+        //we can be efficient and not consider the sizes larger than the default size
+        var result = _calculateFontSize(size, style, maxLines);
+        fontSize = result[0] as double;
+        textFits = result[1] as bool;
+      }
 
       if (fontSize != currentFontSize) {
         if (widget.onCalculatedFontSize != null) {
@@ -562,6 +592,18 @@ class _AutoSizeTextFieldState extends State<AutoSizeTextField> {
     //check we're still valid to send it
     if (mounted) {
       widget.onCalculatedFontSize!(fontSize);
+    }
+  }
+
+  void sendOnCalculateMaxFontSize(double fontSize) async {
+    //this is called in the Layout phase
+    //but that's a bad time to send a callback
+    //so wait until the next frame
+    await null;
+
+    //check we're still valid to send it
+    if (mounted) {
+      widget.onCalculatedMaxFontSize!(fontSize);
     }
   }
 
@@ -633,7 +675,12 @@ class _AutoSizeTextFieldState extends State<AutoSizeTextField> {
   }
 
   List _calculateFontSize(
-      BoxConstraints size, TextStyle? style, int? maxLines) {
+    BoxConstraints size,
+    TextStyle? style,
+    int? maxLines, {
+    //figure out what the largest it could be is, without actually drawing it at that size
+    bool calculateMaxSize = false,
+  }) {
     var span = TextSpan(
       style: widget.textSpan?.style ?? style,
       text: widget.textSpan?.text ?? widget.data,
@@ -648,15 +695,18 @@ class _AutoSizeTextFieldState extends State<AutoSizeTextField> {
 
     var presetFontSizes = widget.presetFontSizes?.reversed.toList();
     if (presetFontSizes == null) {
-      num defaultFontSize =
-          style!.fontSize!.clamp(widget.minFontSize, widget.maxFontSize);
-      var defaultScale = defaultFontSize * userScale / style.fontSize!;
-      if (_checkTextFits(span, defaultScale, maxLines, size)) {
-        return [defaultFontSize * userScale, true];
-      }
-
       left = (widget.minFontSize / widget.stepGranularity).floor();
-      right = (defaultFontSize / widget.stepGranularity).ceil();
+      if (calculateMaxSize) {
+        right = (widget.maxFontSize / widget.stepGranularity).ceil();
+      } else {
+        num defaultFontSize =
+            style!.fontSize!.clamp(widget.minFontSize, widget.maxFontSize);
+        var defaultScale = defaultFontSize * userScale / style.fontSize!;
+        if (_checkTextFits(span, defaultScale, maxLines, size)) {
+          return [defaultFontSize * userScale, true];
+        }
+        right = (defaultFontSize / widget.stepGranularity).ceil();
+      }
     } else {
       left = 0;
       right = presetFontSizes.length - 1;
