@@ -681,6 +681,16 @@ class _AutoSizeTextFieldState extends State<AutoSizeTextField> {
     //figure out what the largest it could be is, without actually drawing it at that size
     bool calculateMaxSize = false,
   }) {
+//reduce the width by 3.0 because Editable puts in `_caretMargin` on the right
+//hand side of the text box, reducing the space available. `_caretMargin`  is
+// `_kCaretGap + cursorWidth` wide and that seems to work out as 3px.
+    size = BoxConstraints(
+      minWidth: size.minWidth,
+      minHeight: size.minHeight,
+      maxHeight: size.maxHeight,
+      maxWidth: size.maxWidth - 3.0,
+    );
+
     var span = TextSpan(
       style: widget.textSpan?.style ?? style,
       text: widget.textSpan?.text ?? widget.data,
