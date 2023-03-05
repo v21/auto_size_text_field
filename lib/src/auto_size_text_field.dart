@@ -424,6 +424,10 @@ class AutoSizeTextField extends StatefulWidget {
 
   final double? minWidth;
 
+  /// hack for Downpour - we set letterSpacing to be a multiple of the font size,
+  /// so we need to duplicate that logic in here when figuring out the max font size
+  final double letterSpacingMultipleOfFontSize;
+
   /// Creates a [AutoSizeTextField] widget.
   ///
   /// If the [style] argument is null, the text will use the style from the
@@ -434,6 +438,7 @@ class AutoSizeTextField extends StatefulWidget {
     this.textFieldKey,
     this.onCalculatedFontSize,
     this.onCalculatedMaxFontSize,
+    this.letterSpacingMultipleOfFontSize = 0,
     this.style,
     this.strutStyle,
     this.minFontSize = 12,
@@ -664,7 +669,10 @@ class _AutoSizeTextFieldState extends State<AutoSizeTextField> {
         smartDashesType: widget.smartDashesType,
         smartQuotesType: widget.smartQuotesType,
         strutStyle: widget.strutStyle,
-        style: style.copyWith(fontSize: fontSize),
+        style: style.copyWith(
+          fontSize: fontSize,
+          letterSpacing: fontSize * widget.letterSpacingMultipleOfFontSize,
+        ),
         textAlign: widget.textAlign,
         textAlignVertical: widget.textAlignVertical,
         textCapitalization: widget.textCapitalization,
@@ -692,7 +700,7 @@ class _AutoSizeTextFieldState extends State<AutoSizeTextField> {
     );
 
     var span = TextSpan(
-      style: widget.textSpan?.style ?? style,
+      style: (widget.textSpan?.style ?? style),
       text: widget.textSpan?.text ?? widget.data,
       children: widget.textSpan?.children,
       recognizer: widget.textSpan?.recognizer,
@@ -775,7 +783,10 @@ class _AutoSizeTextFieldState extends State<AutoSizeTextField> {
 
       var wordWrapTp = TextPainter(
         text: TextSpan(
-          style: text.style,
+          style: text.style?.copyWith(
+            letterSpacing: (scale * (text.style?.fontSize ?? 14)) *
+                widget.letterSpacingMultipleOfFontSize,
+          ),
           text: words.join('\n'),
         ),
         textAlign: widget.textAlign,
@@ -821,7 +832,10 @@ class _AutoSizeTextFieldState extends State<AutoSizeTextField> {
         recognizer: text.recognizer,
         children: text.children,
         semanticsLabel: text.semanticsLabel,
-        style: text.style,
+        style: text.style?.copyWith(
+          letterSpacing: ((text.style?.fontSize ?? 14) * scale) *
+              widget.letterSpacingMultipleOfFontSize,
+        ),
       ),
       textAlign: widget.textAlign,
       textDirection: widget.textDirection ?? TextDirection.ltr,
